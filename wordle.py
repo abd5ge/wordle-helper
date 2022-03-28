@@ -22,6 +22,11 @@ def guessword(inword = None, status = None):
         inword = input("Enter a word: ")
     if status == None:
         status = input("Enter color of each letter: ")
+    if len(inword) != 5 or len(status) != 5:
+        print('\n')
+        print('Either the word you entered or the color scheme is not long enough.' '\n', 'Please input 5 characters.')
+        print('\n')
+        inword, status = guessword()
     return inword.lower(), status.lower()
 
 
@@ -150,8 +155,15 @@ def compare(mash, sols, bag):
     #suggest_word = mw[(random.randint(0,len(mw) - 1))]
     suggest_word = max(mw_dict, key=mw_dict.get)
     return suggest_word, mw, mw_dict, patterns
+print('------------------', '\n')
+print('To play, enter a word on Wordle, then provide the results here.', '\n',
+'o = black, y = yellow, g = green', '\n',
+'Example: Initial guess could be ''adieu''','\n', 'The status for that word could be googo', '\n',
+'where ''a'' and ''e'' are in the solution.')
+print('------------------', '\n')
 
 w, s = guessword()
+
 all_solutions, greens, yellows = attempt(w,s)
 y_chars += yellows
 g_chars += greens
@@ -159,8 +171,14 @@ mash = []
 mash += y_chars + g_chars
 
 ss = ''
+len_mw = 2
 all_patterns = []
 while ss != 'ggggg':
+    if len_mw <= 1:
+        print('\n')
+        print('Sorry -- there are no more words in the wordbank!')
+        print('\n')
+        break
     suggest_word, mw, mw_dict, patterns = compare(mash, all_solutions, bag_of_words)
     all_patterns += patterns
     print('------', '\n')
@@ -169,12 +187,12 @@ while ss != 'ggggg':
     print('------', '\n')
     print('Next suggestion ****',suggest_word,'**** This word has the highest score: ', suggest_word, '(Score: ', mw_dict[suggest_word], ')')
     print('------', '\n')
-    if len(mw) < 10:
-        print('You only have 10 or less words left in the word bank:')
-        print(mw_dict)
     ww, ss = guessword()
     all_solutions, g, y = attempt(ww, ss)
     y_chars += g
     g_chars += y
     mash += g + y
     bag_of_words = mw.copy()
+    len_mw = len(mw)
+else:
+    print('Great job, you\'ve solved it!')
