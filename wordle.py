@@ -24,7 +24,7 @@ def guessword(inword = None, status = None):
         status = input("Enter color of each letter: ")
     if len(inword) != 5 or len(status) != 5:
         print('\n')
-        print('Either the word you entered or the color scheme is not long enough.' '\n', 'Please input 5 characters.')
+        print('Word or color scheme not 5 characters!' '\n', 'Please input 5 characters.')
         print('\n')
         inword, status = guessword()
     return inword.lower(), status.lower()
