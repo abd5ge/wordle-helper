@@ -22,11 +22,13 @@ def guessword(inword = None, status = None):
         inword = input("Enter a word: ")
     if status == None:
         status = input("Enter color of each letter: ")
-    if len(inword) != 5 or len(status) != 5:
+    if len(inword) != 5 or len(status) != 5 or len([i for i in status if i not in ['o','y','g']]) > 0: #list(set(status)) not in ['o','y','g']:
         print('\n')
-        print('Word or color scheme not 5 characters!' '\n', 'Please input 5 characters.')
+        print('Somethings not right.')
+        print('Please make sure you\'ve input 5 characters and that the word scheme is only using o y g characters.')
         print('\n')
         inword, status = guessword()
+
     return inword.lower(), status.lower()
 
 
@@ -139,10 +141,10 @@ def compare(mash, sols, bag):
     # Filtering only for words that have greens and yellows in them
     mw = [word for word in matchingwords if all(x in word for x in mash) == True]
 
-    print('------', '\n')
+    print('\n')
     print('Current pattern for this word:')
     print(patterns)
-    print('------', '\n')
+
 
     mw_dict = {}
     for word in mw:
@@ -153,14 +155,18 @@ def compare(mash, sols, bag):
                 mw_dict[word] += v
 
     #suggest_word = mw[(random.randint(0,len(mw) - 1))]
-    suggest_word = max(mw_dict, key=mw_dict.get)
+    try:
+        suggest_word = max(mw_dict, key=mw_dict.get)
+    except ValueError:
+        print('No words found, check the wordbank...')
+
     return suggest_word, mw, mw_dict, patterns
-print('------------------', '\n')
+print('#####################')
 print('To play, enter a word on Wordle, then provide the results here.', '\n',
 'o = black, y = yellow, g = green', '\n',
 'Example: Initial guess could be ''adieu''','\n', 'The status for that word could be googo', '\n',
 'where ''a'' and ''e'' are in the solution.')
-print('------------------', '\n')
+print('#####################', '\n')
 
 w, s = guessword()
 
@@ -179,14 +185,17 @@ while ss != 'ggggg':
         print('Sorry -- there are no more words in the wordbank!')
         print('\n')
         break
-    suggest_word, mw, mw_dict, patterns = compare(mash, all_solutions, bag_of_words)
+    try:
+        suggest_word, mw, mw_dict, patterns = compare(mash, all_solutions, bag_of_words)
+    except UnboundLocalError:
+        print('Sound the alarms! Somethings not right!')
+        break
     all_patterns += patterns
-    print('------', '\n')
+    print('\n')
     print('All patterns for this game:')
     print(all_patterns)
-    print('------', '\n')
+    print('\n')
     print('Next suggestion ****',suggest_word,'**** This word has the highest score: ', suggest_word, '(Score: ', mw_dict[suggest_word], ')')
-    print('------', '\n')
     ww, ss = guessword()
     all_solutions, g, y = attempt(ww, ss)
     y_chars += g
