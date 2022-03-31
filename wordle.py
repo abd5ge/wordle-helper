@@ -2,7 +2,6 @@ import random
 from collections import defaultdict
 import re
 
-#d  = "/usr/share/dict/words"
 d = "words.csv"
 dictionary = [strngs.strip().lower() for strngs in open(d,"r")]
 bag_of_words = [word for word in dictionary if len(word) == 5]
@@ -31,26 +30,20 @@ def guessword(inword = None, status = None):
 
     return inword.lower(), status.lower()
 
-
 def grab_locations(grp):
     dic = defaultdict(list)
     for i, item in enumerate(grp):
         dic[item].append(i)
-    return ((key,locs) for key,locs in dic.items()
-                            if len(locs)>0)
+    return dic
 
 def attempt(word = None, status = None):
-    all_locs = {'o':[], 'y':[], 'g':[]}
-    for locs in sorted(grab_locations(status)):
-        all_locs[locs[0]] = locs[1]
 
-    all_locs_items = {'o':[], 'y':[], 'g':[]}
+    all_locs = grab_locations(status)
+    all_locs_items = defaultdict(list)
+
     for key, values in all_locs.items():
-        if key not in all_locs_items:
-            all_locs_items[key] = []
         for value in values:
             all_locs_items[key].append(word[value])
-
     semi_bad = []
     for key,values in all_locs_items.items():
         if key == 'o':
@@ -58,29 +51,23 @@ def attempt(word = None, status = None):
                 bad_letter_in_mult_classes = [status for status, letters in all_locs_items.items() if value in letters]
                 if len(bad_letter_in_mult_classes) > 1:
                     semi_bad.append(value)
-
+    word_locs = grab_locations(word)
     semi_bad_locs = {}
-    for locs in sorted(grab_locations(word)):
+    for key, values in word_locs.items():
         for sb in semi_bad:
-            if sb in locs:
-                semi_bad_locs[locs[0]] = locs[1]
-
-
+            if sb == key:
+                semi_bad_locs[key] = values
     sol = ['^','^','^','^','^']
     ol = ''
     yellows = []
     greens = []
-
     for s in range(len(status)):
         if status[s] == 'g':
             greens.append(word[s])
             sol[s] = word[s]
         elif status[s] == 'y' and word[s] in semi_bad:
             sol[s] += word[s]
-        elif status[s] == 'o' and word[s] in all_locs_items['y']:
-            yellows.append(word[s])
-            sol[s] += word[s]
-        elif status[s] == 'y' and word[s] not in semi_bad:
+        elif (status[s] == 'o' and word[s] in all_locs_items['y']) or (status[s] == 'y' and word[s] not in semi_bad):
             yellows.append(word[s])
             sol[s] += word[s]
         else:
@@ -89,11 +76,9 @@ def attempt(word = None, status = None):
     for i in range(len(sol)):
         if '^' in sol[i]:
             sol[i] += ol
-
     sol_copy = sol.copy()
     all_possible_sols = []
     yellows_regx = '|'.join(yellows)
-
     if len(semi_bad) > 0:
         for s in semi_bad:
             for j in semi_bad_locs[s]:
@@ -105,7 +90,6 @@ def attempt(word = None, status = None):
                     elif word[j] in greens and '^' not in sol_copy[i]:
                         sol_copy[i] = word[j]
                         all_possible_sols.append(sol_copy)
-
         sols = [list(t) for t in {tuple(item) for item in all_possible_sols}]
         return sols, greens, yellows
     elif len(yellows) > 0:
@@ -136,16 +120,11 @@ def compare(mash, sols, bag):
         patterns.append(m)
         for m in patterns:
             matchingwords += list(filter(m.match, bag))
-
     matchingwords = list(set(matchingwords))
-    # Filtering only for words that have greens and yellows in them
     mw = [word for word in matchingwords if all(x in word for x in mash) == True]
-
     print('\n')
     print('Current pattern for this word:')
     print(patterns)
-
-
     mw_dict = {}
     for word in mw:
         for k,v in char_freq.items():
@@ -153,13 +132,10 @@ def compare(mash, sols, bag):
                 mw_dict[word] = 0
             if k in word:
                 mw_dict[word] += v
-
-    #suggest_word = mw[(random.randint(0,len(mw) - 1))]
     try:
         suggest_word = max(mw_dict, key=mw_dict.get)
     except ValueError:
         print('No words found, check the wordbank...')
-
     return suggest_word, mw, mw_dict, patterns
 print('#####################')
 print('To play, enter a word on Wordle, then provide the results here.', '\n',
@@ -167,15 +143,12 @@ print('To play, enter a word on Wordle, then provide the results here.', '\n',
 'Example: Initial guess could be ''adieu''','\n', 'The status for that word could be googo', '\n',
 'where ''a'' and ''e'' are in the solution.')
 print('#####################', '\n')
-
 w, s = guessword()
-
 all_solutions, greens, yellows = attempt(w,s)
 y_chars += yellows
 g_chars += greens
 mash = []
 mash += y_chars + g_chars
-
 ss = ''
 len_mw = 2
 all_patterns = []
