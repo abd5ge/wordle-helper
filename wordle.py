@@ -125,6 +125,7 @@ def compare(mash, sols, bag):
     print('\n')
     print('Current pattern for this word:')
     print(patterns)
+    print('Size of current wordbank', len(mw))
     mw_dict = {}
     for word in mw:
         for k,v in char_freq.items():
@@ -169,7 +170,7 @@ while ss != 'ggggg':
     print(all_patterns)
     print('\n')
     print('Next suggestion ****',suggest_word,'**** This word has the highest score: ', suggest_word, '(Score: ', mw_dict[suggest_word], ')')
-    ww, ss = guessword()
+    ww, ss = guessword(suggest_word, None)
     all_solutions, g, y = attempt(ww, ss)
     y_chars += g
     g_chars += y
